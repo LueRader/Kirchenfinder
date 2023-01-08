@@ -1,10 +1,15 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kirche/widgets/ListPage.dart';
+import 'package:kirche/DatabaseHelper.dart';
 import 'package:kirche/model/church.dart';
 
 void main() {
-  runApp(const MyApp());
+  late DatabaseHelper dbHelper = DatabaseHelper();
+  dbHelper.initDB().whenComplete(() => () async {
+    List<Church> churches = await dbHelper.loadChurches();
+    runApp(const MyApp());
+  });
 }
 
 class MyApp extends StatelessWidget {
