@@ -13,18 +13,20 @@ class MyApp extends StatelessWidget {
   List<Church> get getChurches {
     return [
       Church(
+        id: 1,
         name: 'N',
         streetName: 'SN',
-        number: '1',
+        streetNumber: '1',
         zip: '12345',
         state: 'A',
         lat: 1.0,
         lon: 1.0,
       ),
       Church(
+        id: 2,
         name: 'Na',
         streetName: 'StN',
-        number: '2',
+        streetNumber: '2',
         zip: '23456',
         state: 'B',
         lat: 2.0,
