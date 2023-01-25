@@ -45,7 +45,6 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return CupertinoApp(
         home: MyHomePage(
-            title: 'Flutter Demo Home Page',
             churches: getChurches,
         ),
     );
@@ -53,9 +52,8 @@ class MyApp extends StatelessWidget {
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title, required this.churches});
+  const MyHomePage({super.key, required this.churches});
 
-  final String title;
   final List<Church> churches;
 
   @override
@@ -65,34 +63,22 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   int _selectedPage = 0;
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedPage = index;
-    });
+  List<int> _filterList = [];
+
+  List<Church> _getFilteredChurches() {
+    return widget.churches.where((church) => _filterList.contains(church.id)).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoTabScaffold(
-      tabBar: CupertinoTabBar(
-        activeColor: Colors.black,
-        inactiveColor: Colors.black.withAlpha(80),
-        items: const [
-          BottomNavigationBarItem(
-            label:'Liste',
-            icon: Icon(Icons.list),
-          ),
-          BottomNavigationBarItem(
-            label:'Karte',
-            icon: Icon(Icons.pin_drop),
-          ),
-        ],
-      ),// This trailing comma makes auto-formatting nicer for build methods.
-      tabBuilder: (context, index) {
-        return CupertinoTabView(builder: (context) {
-          return CupertinoPageScaffold(child: ListPage(churches: widget.churches));
-        });
-      },
+    return CupertinoPageScaffold(
+      child: CupertinoScrollbar(
+        thickness: 6.0,
+        thicknessWhileDragging: 10.0,
+        radius: const Radius.circular(34.0),
+        radiusWhileDragging: const Radius.circular(34.0),
+        child: ListPage(churches: _getFilteredChurches()),
+      )
     );
   }
 }

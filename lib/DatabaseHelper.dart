@@ -31,7 +31,12 @@ class DatabaseHelper {
               state TEXT NOT NULL,
               lat DECIMAL(10,5) NOT NULL,
               lon DECIMAL(10,5) NOT NULL
-            )
+            );
+            Create Table visits (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              church_id INTEGER NOT NULL,
+              visit_timestamp DATETIME NOT NULL
+            );
           """,
         );
       },
