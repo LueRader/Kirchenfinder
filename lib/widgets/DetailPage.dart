@@ -10,17 +10,15 @@ class DetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        transitionBetweenRoutes: false,
-        border: Border(),
+    return Scaffold(
+      appBar: AppBar(
         backgroundColor: Colors.black12,
-        middle: Text('Detail'),
-        leading: CupertinoNavigationBarBackButton(
+        title: const Text('Detail'),
+        leading: const BackButton(
           color: Colors.black,
         ),
       ),
-      child: Center(
+      body: Center(
         child: Text(church.name),
       ),
     );

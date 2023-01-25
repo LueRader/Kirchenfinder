@@ -1,8 +1,10 @@
 import 'dart:async';
-
 import 'package:kirche/model/church.dart';
+import 'package:kirche/model/visit.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+
+import 'model/visitimage.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _databaseHelper = DatabaseHelper._();
@@ -32,10 +34,16 @@ class DatabaseHelper {
               lat DECIMAL(10,5) NOT NULL,
               lon DECIMAL(10,5) NOT NULL
             );
-            Create Table visits (
+            CREATE TABLE visits (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
-              church_id INTEGER NOT NULL,
-              visit_timestamp DATETIME NOT NULL
+              churchId INTEGER NOT NULL,
+              timestamp DATETIME NOT NULL
+            );
+            CREATE TABLE visits_images (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              visitId INTEGER NOT NULL,
+              savepath TEXT NOT NULL,
+              takenAt DATETIME NOT NULL
             );
           """,
         );
@@ -63,5 +71,27 @@ class DatabaseHelper {
 
   Future<int> deleteChurch(int id) async {
     return await db.delete('churches', where: "id = ?", whereArgs: [id]);
+  }
+
+  Future<Map<int,List<VisitImage>>> loadVisitImages() async {
+    final List<Map<String,Object?>> visitImagesQueryRes = await db.query('visits_images');
+    Map<int,List<VisitImage>> visitImages = {};
+    for (var vi in visitImagesQueryRes) {
+      VisitImage visitImage = VisitImage.fromMap(vi);
+      visitImages.update(visitImage.visitId, (vis) => [...vis, visitImage], ifAbsent: () => [visitImage] );
+    }
+    return visitImages;
+  }
+  
+  Future<Map<int,List<Visit>>> loadVisits() async {
+    final List<Map<String,Object?>> visitQueryRes = await db.query('visits');
+    Map<int,List<Visit>> visits = {};
+    Map<int,List<VisitImage>> images = await loadVisitImages();
+    for (var v in visitQueryRes) {
+      v['images'] = images[v['id']] ?? [];
+      Visit visit = Visit.fromMap(v);
+      visits.update(visit.churchId, (vs) => [...vs, visit], ifAbsent: () => [visit] );
+    }
+    return visits;
   }
 }

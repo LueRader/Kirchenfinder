@@ -1,15 +1,19 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kirche/widgets/ListPage.dart';
+import 'package:kirche/widgets/MapPage.dart';
 import 'package:kirche/DatabaseHelper.dart';
 import 'package:kirche/model/church.dart';
+import 'package:flutter_search_bar/flutter_search_bar.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   late DatabaseHelper dbHelper = DatabaseHelper();
-  dbHelper.initDB().whenComplete(() => () async {
+  dbHelper.initDB().whenComplete(() async {
     List<Church> churches = await dbHelper.loadChurches();
     runApp(const MyApp());
   });
+  //runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -24,8 +28,8 @@ class MyApp extends StatelessWidget {
         streetNumber: '1',
         zip: '12345',
         state: 'A',
-        lat: 1.0,
-        lon: 1.0,
+        lat: 53.7398629,
+        lon: 13.0813882,
       ),
       Church(
         id: 2,
@@ -34,8 +38,8 @@ class MyApp extends StatelessWidget {
         streetNumber: '2',
         zip: '23456',
         state: 'B',
-        lat: 2.0,
-        lon: 2.0,
+        lat: 53.6033576,
+        lon: 12.2021056,
       ),
     ];
   }
@@ -43,7 +47,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
+    return MaterialApp(
         home: MyHomePage(
             churches: getChurches,
         ),
@@ -61,24 +65,92 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _selectedPage = 0;
 
-  List<int> _filterList = [];
-
-  List<Church> _getFilteredChurches() {
-    return widget.churches.where((church) => _filterList.contains(church.id)).toList();
-  }
+  bool _showMap = false;
+  late List<Church> _filteredChurches;
+  late SearchBar _searchBar;
+  bool _searchActive = false;
 
   @override
-  Widget build(BuildContext context) {
-    return CupertinoPageScaffold(
-      child: CupertinoScrollbar(
-        thickness: 6.0,
-        thicknessWhileDragging: 10.0,
-        radius: const Radius.circular(34.0),
-        radiusWhileDragging: const Radius.circular(34.0),
-        child: ListPage(churches: _getFilteredChurches()),
+  void initState() {
+    super.initState();
+    _filteredChurches = widget.churches;
+    _searchBar = SearchBar(
+        inBar: false,
+        buildDefaultAppBar: buildAppBar,
+        setState: setState,
+        onSubmitted: onSubmitted,
+        onChanged: onSubmitted,
+        onCleared: () {
+          setState(() {
+            _filteredChurches = widget.churches;
+          });
+        },
+        onClosed: () {
+        setState(() {
+          _filteredChurches = widget.churches;
+        });
+      },
+    );
+  }
+
+  List<Widget> buildActionButtons(BuildContext context) {
+    List<Widget> actions = [];
+    actions.add(
+      IconButton(
+        onPressed: () {
+          setState(() {
+            _showMap = !_showMap;
+          });
+        },
+        icon: () {
+          if(!_showMap) return const Icon(Icons.map, semanticLabel: "Zur Kartenansicht wechseln.",);
+          return const Icon(Icons.list, semanticLabel: "Zur Listenansicht wechseln.",);
+        }(),
       )
+    );
+    if(_searchActive) {
+      actions.add(
+        IconButton(onPressed: () {
+          setState(() {
+            _searchActive = false;
+            _filteredChurches = widget.churches;
+          });
+        }, icon: const Icon(Icons.search_off, semanticLabel: "Suche löschen",),
+        )
+      );
+    } else {
+      actions.add(_searchBar.getSearchAction(context));
+    }
+    return actions;
+  }
+
+  AppBar buildAppBar(BuildContext context) {
+    return AppBar(
+        title: const Text('Search Bar Demo'),
+        actions: buildActionButtons(context));
+  }
+
+  void onSubmitted(String value) {
+    setState(() {
+      _searchActive = true;
+      _filteredChurches = widget.churches.where((church) => church.name.toLowerCase().contains(value.toLowerCase())).toList();
+    });
+  }
+
+  
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: _searchBar.build(context),
+       body: AnimatedCrossFade(
+         firstChild: ListPage(churches: _filteredChurches),
+         secondChild: MapPage(churches: _filteredChurches),
+         duration: const Duration(milliseconds: 300),
+         crossFadeState: _showMap
+           ? CrossFadeState.showSecond
+           : CrossFadeState.showFirst,
+       ),
     );
   }
 }

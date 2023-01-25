@@ -35,7 +35,7 @@ class _ListPageState extends State<ListPage> {
       const Icon(Icons.keyboard_arrow_right, color: Colors.black, size: 30.0),
       onTap: () {
         Navigator.of(context).push(
-            CupertinoPageRoute(
+            MaterialPageRoute(
                 builder: (context) => DetailPage(church: church)));
       },
     );
@@ -54,15 +54,10 @@ class _ListPageState extends State<ListPage> {
         },
     );
 
-    return CupertinoPageScaffold(
-      navigationBar: const CupertinoNavigationBar(
-        middle: Text('Liste'),
-      ),
-      backgroundColor: const Color.fromRGBO(58, 66, 86, 1.0),
-      child: Container(
-        padding: EdgeInsets.symmetric(vertical: 8),
+    return Scrollbar(
+        thickness: 6.0,
+        radius: const Radius.circular(34.0),
         child: makeBody
-      ),
     );
   }
 }
