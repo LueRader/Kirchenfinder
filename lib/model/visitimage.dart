@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:kirche/DatabaseHelper.dart';
 import 'package:path_provider/path_provider.dart';
 
 class VisitImage {
@@ -35,5 +36,28 @@ class VisitImage {
       'savepath' : savepath,
       'takenAt' : takenAt,
     };
+  }
+
+  Future<String> getLocalFilePath() async {
+    final dir = await getApplicationDocumentsDirectory();
+
+    return dir.path;
+  }
+
+  Future<bool> deleteImage(DatabaseHelper db) async {
+    final dir = getLocalFilePath();
+    File file = File('$dir/$visitId/id.jpg');
+    try {
+      await file.delete();
+    } catch(e) {
+      return false;
+    }
+    int del = 0;
+    try {
+      del = await db.deleteVisitImage(id);
+    } catch(e) {
+      return false;
+    }
+    return del == 1;
   }
 }

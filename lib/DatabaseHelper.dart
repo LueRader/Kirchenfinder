@@ -82,6 +82,16 @@ class DatabaseHelper {
     }
     return visitImages;
   }
+
+  Future<int> upsertVisitImage(VisitImage vi) async {
+    Map<String, Object?> vis = vi.toMap();
+    if(vis['id'] == 0) vis.remove('id');
+    return await db.insert('visit_images', vi.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<int> deleteVisitImage(int id) async {
+    return await db.delete('visits_images', where: "id = ?", whereArgs: [id]);
+  }
   
   Future<Map<int,List<Visit>>> loadVisits() async {
     final List<Map<String,Object?>> visitQueryRes = await db.query('visits');
@@ -93,5 +103,15 @@ class DatabaseHelper {
       visits.update(visit.churchId, (vs) => [...vs, visit], ifAbsent: () => [visit] );
     }
     return visits;
+  }
+
+  Future<int> upsertVisit(Visit v) async {
+    Map<String, Object?> vis = v.toMap();
+    if(vis['id'] == 0) vis.remove('id');
+    return await db.insert('visit_images', v.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<int> deleteVisit(int id) async {
+    return await db.delete('visits', where: "id = ?", whereArgs: [id]);
   }
 }
