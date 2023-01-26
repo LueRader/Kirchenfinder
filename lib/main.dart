@@ -1,16 +1,35 @@
+import 'dart:io';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:kirche/model/visit.dart';
 import 'package:kirche/widgets/ListPage.dart';
 import 'package:kirche/widgets/MapPage.dart';
 import 'package:kirche/DatabaseHelper.dart';
 import 'package:kirche/model/church.dart';
 import 'package:flutter_search_bar/flutter_search_bar.dart';
+import 'package:kirche/model/visitimage.dart';
+import 'package:sqflite/sqflite.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   late DatabaseHelper dbHelper = DatabaseHelper();
   dbHelper.initDB().whenComplete(() async {
-    List<Church> churches = await dbHelper.loadChurches();
+    List<Church> churches = [];
+    Map<int, List<Visit>> visits = {};
+    Map<int,List<VisitImage>> visitImages = {};
+    try {
+      churches = await dbHelper.loadChurches();
+      visits = await dbHelper.loadVisits();
+      visitImages = await dbHelper.loadVisitImages();
+    } catch(e) {
+      print("Error");
+    }
+
+    for (var ch in churches) {
+      ch.visits = visits[ch.id] ?? [];
+      for (var vi in ch.visits) { vi.images = visitImages[vi.id] ?? []; }
+    }
     runApp(const MyApp());
   });
   //runApp(const MyApp());

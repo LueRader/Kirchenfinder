@@ -1,3 +1,5 @@
+import 'package:kirche/model/visit.dart';
+
 class Church {
   int id;
   String name;
@@ -7,6 +9,7 @@ class Church {
   String state;
   double lat;
   double lon;
+  late List<Visit> visits;
 
   Church({
     required this.id,
@@ -16,7 +19,9 @@ class Church {
     required this.zip,
     required this.state,
     required this.lat,
-    required this.lon});
+    required this.lon,
+    this.visits = const [],
+  });
 
   Church.fromMap(Map<String, dynamic> res) :
         id = res['id'],

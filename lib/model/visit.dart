@@ -20,6 +20,8 @@ class Visit {
         images = res['images'];
 
 
+
+
   Map<String,Object?> toMap() {
     return {
       'id' : id,

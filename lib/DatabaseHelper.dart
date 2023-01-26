@@ -20,7 +20,7 @@ class DatabaseHelper {
   Future<void> initDB() async {
     String path = await getDatabasesPath();
     db = await openDatabase(
-      join(path, 'users_demo.db'),
+      join(path, 'church_finder.db'),
       onCreate: (database, version) async {
         await database.execute(
           """
@@ -34,18 +34,25 @@ class DatabaseHelper {
               lat DECIMAL(10,5) NOT NULL,
               lon DECIMAL(10,5) NOT NULL
             );
+          """);
+        await database.execute(
+          """
             CREATE TABLE visits (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               churchId INTEGER NOT NULL,
               timestamp DATETIME NOT NULL
             );
+          """
+        );
+        await database.execute(
+          """
             CREATE TABLE visits_images (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               visitId INTEGER NOT NULL,
               savepath TEXT NOT NULL,
               takenAt DATETIME NOT NULL
             );
-          """,
+          """
         );
       },
       version: 1,
