@@ -45,6 +45,10 @@ dependencies:
   latlong2: ^0.8.1
   flutter_map_marker_cluster: ^1.0.1
   intl: ^0.18.0
+  camera: ^0.10.3
+  permission_handler: ^10.2.0
+  flutter_speed_dial: ^6.2.0
+  image_picker: ^0.8.6+1
 
 dev_dependencies:
   flutter_test:

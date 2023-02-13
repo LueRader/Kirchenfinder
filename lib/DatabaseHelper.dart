@@ -28,7 +28,7 @@ class DatabaseHelper {
               id INTEGER PRIMARY KEY AUTOINCREMENT, 
               name TEXT NOT NULL,
               streetName TEXT NOT NULL,
-              number TEXT NOT NULL,
+              streetNumber TEXT NOT NULL,
               zip TEXT NOT NULL,
               state TEXT NOT NULL,
               lat DECIMAL(10,5) NOT NULL,
@@ -40,7 +40,7 @@ class DatabaseHelper {
             CREATE TABLE visits (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               churchId INTEGER NOT NULL,
-              timestamp DATETIME NOT NULL
+              timestamp TIMESTAMP NOT NULL
             );
           """
         );
@@ -103,9 +103,7 @@ class DatabaseHelper {
   Future<Map<int,List<Visit>>> loadVisits() async {
     final List<Map<String,Object?>> visitQueryRes = await db.query('visits');
     Map<int,List<Visit>> visits = {};
-    Map<int,List<VisitImage>> images = await loadVisitImages();
     for (var v in visitQueryRes) {
-      v['images'] = images[v['id']] ?? [];
       Visit visit = Visit.fromMap(v);
       visits.update(visit.churchId, (vs) => [...vs, visit], ifAbsent: () => [visit] );
     }
@@ -115,7 +113,7 @@ class DatabaseHelper {
   Future<int> upsertVisit(Visit v) async {
     Map<String, Object?> vis = v.toMap();
     if(vis['id'] == 0) vis.remove('id');
-    return await db.insert('visit_images', v.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert('visits', vis, conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<int> deleteVisit(int id) async {

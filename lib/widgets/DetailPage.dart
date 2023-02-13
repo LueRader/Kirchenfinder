@@ -3,17 +3,19 @@ import 'dart:io';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:kirche/ChurchProvider.dart';
 import 'package:kirche/model/church.dart';
 import 'package:kirche/model/visit.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:provider/provider.dart';
 
 import 'VisitEditAddPage.dart';
 import 'VisitDetailPage.dart';
 
 class DetailPage extends StatefulWidget {
-  const DetailPage({super.key, required this.church});
+  const DetailPage({super.key, required this.churchId});
 
-  final Church church;
+  final int churchId;
 
   @override
   _DetailPageState createState() => _DetailPageState();
@@ -21,26 +23,37 @@ class DetailPage extends StatefulWidget {
 
 class _DetailPageState extends State<DetailPage> {
 
+  late Church _church;
+  late List<Visit> _visits;
+
+  @override
+  void initState() {
+    super.initState();
+    initializeDateFormatting();
+  }
+
 
   @override
   Widget build(BuildContext context) {
-    Widget makeVisit(Visit visit) {
+    _church = Provider.of<ChurchProvider>(context, listen: true).getChurch(widget.churchId);
+    _visits = Provider.of<ChurchProvider>(context, listen: true).getVisits(widget.churchId) ?? [];
+    Widget makeVisit(int idx) {
       return ListTile(
         contentPadding:
         const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
         leading: const Icon(Icons.ac_unit),
         title: Text(
-          DateFormat.yMd('de_DE').format(visit.timestamp),
+          DateFormat.yMd('de_DE').format(_visits[idx].timestamp),
           style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
         ),
         subtitle: RichText(
-          text: TextSpan(
+          text: const TextSpan(
             children: [
-              const WidgetSpan(
+              WidgetSpan(
                   child: Icon(Icons.camera_alt_outlined),
               ),
               TextSpan(
-                text: "${visit.images.length} Aufnahmen",
+                text: "Aufnahmen",
               )
             ]
           )
@@ -50,7 +63,7 @@ class _DetailPageState extends State<DetailPage> {
         onTap: () {
           Navigator.of(context).push(
               MaterialPageRoute(
-                  builder: (context) => VisitDetailPage(visit: visit)));
+                  builder: (context) => VisitEditAddPage(churchId: widget.churchId, visitId: _visits[idx].id,)));
         },
       );
     }
@@ -64,9 +77,42 @@ class _DetailPageState extends State<DetailPage> {
         ),
       ),
       body: ListView.builder(
-        itemCount: widget.church.visits.length,
+        itemCount: _visits.length,
         itemBuilder: (BuildContext context, int idx) {
-          return makeVisit(widget.church.visits[idx]);
+          return Dismissible(
+            key: Key(_visits[idx].id.toString()),
+            background: Container(color: Colors.redAccent,),
+            child: makeVisit(idx),
+            direction: DismissDirection.endToStart,
+            onDismissed: (DismissDirection direction) {
+              _visits[idx].deleteVisit().then((res) {
+                if(res == 1) {
+                  Provider.of<ChurchProvider>(context, listen: false).removeVisit(widget.churchId, _visits[idx].id);
+                }
+              });
+            },
+            confirmDismiss: (DismissDirection direction) async {
+              return await showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text("Bestätigung"),
+                    content: const Text("Sind Sie sicher, dass Sie diesen Besuch löschen wollen?"),
+                    actions: <Widget>[
+                      TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: const Text("LÖSCHEN")
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text("ABBRECHEN"),
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          );
         },
       ),
       floatingActionButton: FloatingActionButton(
@@ -74,7 +120,7 @@ class _DetailPageState extends State<DetailPage> {
         onPressed: () {
           Navigator.of(context).push(
               MaterialPageRoute(
-                  builder: (context) => VisitEditAddPage(church: widget.church)));
+                  builder: (context) => VisitEditAddPage(churchId: widget.churchId)));
         },
       ),
     );

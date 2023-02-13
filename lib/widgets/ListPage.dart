@@ -36,7 +36,7 @@ class _ListPageState extends State<ListPage> {
       onTap: () {
         Navigator.of(context).push(
             MaterialPageRoute(
-                builder: (context) => DetailPage(church: church)));
+                builder: (context) => DetailPage(churchId: church.id)));
       },
     );
 

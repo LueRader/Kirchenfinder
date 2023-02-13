@@ -38,7 +38,7 @@ class Church {
       'id' : id,
       'name' : name,
       'streetName' : streetName,
-      'number' : streetNumber,
+      'streetNumber' : streetNumber,
       'zip' : zip,
       'state' : state,
       'lat' : lat,
