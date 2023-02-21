@@ -36,7 +36,7 @@ class _DetailPageState extends State<DetailPage> {
   @override
   Widget build(BuildContext context) {
     _church = Provider.of<ChurchProvider>(context, listen: true).getChurch(widget.churchId);
-    _visits = Provider.of<ChurchProvider>(context, listen: true).getVisits(widget.churchId) ?? [];
+    _visits = Provider.of<ChurchProvider>(context, listen: true).getVisits(widget.churchId);
     Widget makeVisit(int idx) {
       return ListTile(
         contentPadding:
@@ -82,7 +82,6 @@ class _DetailPageState extends State<DetailPage> {
           return Dismissible(
             key: Key(_visits[idx].id.toString()),
             background: Container(color: Colors.redAccent,),
-            child: makeVisit(idx),
             direction: DismissDirection.endToStart,
             onDismissed: (DismissDirection direction) {
               _visits[idx].deleteVisit().then((res) {
@@ -112,6 +111,7 @@ class _DetailPageState extends State<DetailPage> {
                 },
               );
             },
+            child: makeVisit(idx),
           );
         },
       ),

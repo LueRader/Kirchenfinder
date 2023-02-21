@@ -5,15 +5,13 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:kirche/main.dart';
+import 'package:intl/intl.dart';
 import 'package:kirche/model/church.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../ChurchProvider.dart';
 import '../model/visit.dart';
-import '../model/visitimage.dart';
-import 'CameraPage.dart';
 
 class VisitEditAddPage extends StatefulWidget {
   const VisitEditAddPage({super.key, required this.churchId, this.visitId = 0});
@@ -99,14 +97,20 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
     _imageFileList!.addAll(imgs);
   }
 
-  void _removeImagesFromList(List<XFile> imgs) {
-    _imageFileList!.removeWhere(
-        (element) => imgs.map((e) => e.path).toList().contains(element.path));
+  void _removeImagesFromList(List<int> idxs) {
+    List<String> paths = [];
+    _imageFileList!.asMap().forEach(
+        (idx,element) {
+          if (idxs.contains(idx)) {
+            paths.add(element.path);
+          }
+        });
+    _imageFileList!.removeWhere((e) => paths.contains(e.path));
   }
 
   Future<Directory> _getSavePath() async {
     final documentsDirectory = await getApplicationDocumentsDirectory();
-    return await Directory("$documentsDirectory/${widget.churchId}/${widget.visitId}").create(recursive: true);
+    return await Directory("${documentsDirectory.path}/${widget.churchId}/${widget.visitId}").create(recursive: true);
   }
 
   Future<void> _getImagesFromFolder() async {
@@ -140,15 +144,25 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
             Navigator.of(context).push(MaterialPageRoute(builder: (context) => _showGallery(context, _imageFileList!, idx)));
           }
         },
-        child: _selectionActive ?  Stack(children: <Widget>[
-          img,
-          Align(
-            widthFactor: 0.1,
-            heightFactor: 0.1,
-            alignment: Alignment.topLeft,
-            child: Icon(_selectedImages.contains(idx) ? Icons.check_circle : Icons.circle_outlined),
-          )
-        ]) : img,
+        child: _selectionActive ? Transform.scale(
+            scale: 0.9,
+            child: Stack(alignment: Alignment.center,fit: StackFit.expand,children: <Widget>[
+              img,
+              Opacity(
+                opacity: 0.5,
+                child: Container(
+                  color: Colors.black,
+                ),
+              ),
+              Align(
+                widthFactor: 0.1,
+                heightFactor: 0.1,
+                alignment: Alignment.topLeft,
+                child: Icon(_selectedImages.contains(idx) ? Icons.check_circle : Icons.circle_outlined, color: Colors.white,),
+              )
+            ],
+            )
+        ) : img,
     );
   }
 
@@ -158,7 +172,7 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
       Scaffold(
         appBar: AppBar(
           leading: const BackButton(),
-          title: Text("Bild ${controller.page}/${imgs.length}"),
+          title: Text("Aufnahmen"),
           actions: [
             IconButton(
                 onPressed: () {
@@ -169,6 +183,7 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
         ),
         body: PageView.builder(
             controller: controller,
+            itemCount: _imageFileList!.length,
             itemBuilder: (BuildContext context, int idx) {
               return SizedBox.expand(
                 child: Image.file(File(imgs[idx].path)),
@@ -186,7 +201,7 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
             fit: BoxFit.cover,
           ),
           Align(
-            alignment: Alignment.bottomCenter,
+            alignment: Alignment.center,
             child: ButtonBar(
               alignment: MainAxisAlignment.center,
               children: [
@@ -194,19 +209,58 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
                     onPressed: () {
                       Navigator.of(context).pop(false);
                     },
-                    icon: const Icon(Icons.cancel_outlined)
+                    icon: const Icon(Icons.cancel_outlined, color: Colors.white,)
                 ),
                 IconButton(
                     onPressed: () {
                       Navigator.of(context).pop(true);
                     },
-                    icon: const Icon(Icons.cancel_outlined)
+                    icon: const Icon(Icons.close, color: Colors.white,)
                 ),
               ],
             ),
           )
         ],
       ),
+    );
+  }
+
+  PreferredSizeWidget? _createAppBar(BuildContext context) {
+    return _selectionActive ?
+        AppBar(
+          title: const Text('Aufnahmen löschen'),
+          leading: IconButton(onPressed: () {
+            setState(() {
+              _selectedImages = [];
+              _selectionActive = false;
+            });
+          }, icon: const Icon(Icons.close)
+          ),
+          actions: [
+            IconButton(onPressed: () {
+              List<File> imgFiles = _imageFileList!.asMap().entries
+                  .where((e) => _selectedImages.contains(e.key))
+                  .map((e) => File(e.value.path)).toList();
+              setState(() {
+                _removeImagesFromList(_selectedImages);
+                _selectedImages = [];
+                _selectionActive = false;
+              });
+              for(File imgFile in imgFiles) {
+                imgFile.deleteSync();
+              }
+            }, icon: const Icon(Icons.delete)
+            )
+          ],
+        )
+        : AppBar(
+      backgroundColor: Colors.black12,
+      title: const Text('Besuch verzeichnen'),
+      leading: const BackButton(
+        color: Colors.black,
+      ),
+      actions: const [
+      ],
     );
   }
 
@@ -221,31 +275,15 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
     });
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.black12,
-        title: const Text('Besuch verzeichnen'),
-        leading: const BackButton(
-          color: Colors.black,
-        ),
-        actions: const [
-          /*IconButton(
-            onPressed: () {
-              setState(() {
-                if(widget.visitId == 0) {
-                  Map<String, dynamic> visit = {};
-                  visit.putIfAbsent('id', () => widget.visitId);
-                  visit.putIfAbsent('churchId', () => widget.churchId);
-                  visit.putIfAbsent('timestamp', () => timestamp);
-                }
-              });
-            },
-            icon: Icon(Icons.save, semanticLabel: "Besuch speichern",),
-          )*/
-        ],
-      ),
+      appBar: _createAppBar(context),
       body: Column(children: [
         Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text('ABC'),
+          Text(
+            DateFormat.yMd('de_DE').format(_visit.timestamp),
+            style: const TextStyle(fontWeight: FontWeight.bold,),
+            textScaleFactor: 2.0,
+
+          ),
           IconButton(
             icon: const Icon(Icons.date_range),
             onPressed: () {
@@ -272,25 +310,33 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
           ),
         ]),
         Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Text('Aufnahmen', textAlign: TextAlign.center, textScaleFactor: 1.5, style: TextStyle(fontWeight: FontWeight.bold),),
+            Text('Aufnahmen',
+              textAlign: TextAlign.center,
+              textScaleFactor: 1.5,
+              style: TextStyle(fontWeight: FontWeight.bold,),
+            ),
           ],
         ),
         _imageFileList!.isEmpty ?
-        Center(
-          child: Row(
-            children: const <Widget>[
-              Text('Noch keine Aufnahmen'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Text('Noch keine Aufnahmen'),
           ]
-          ),
         )
-        : GridView.builder(
-            gridDelegate:
-            const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4),
-            key: UniqueKey(),
-            itemBuilder: (BuildContext context, int idx) {
-              return _createImageTile(context, idx);
-            })
+        : Expanded(
+            child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 4),
+                padding: const EdgeInsets.all(2),
+                key: UniqueKey(),
+                itemCount: _imageFileList!.length,
+                itemBuilder: (BuildContext context, int idx) {
+                  return _createImageTile(context, idx);
+                }
+                )
+        )
       ]),
       floatingActionButton: SpeedDial(
         icon: Icons.add,
@@ -303,24 +349,18 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
               child: const Icon(Icons.camera_alt),
               onTap: () async {
                 bool save = true;
-                XFile? img;
-                do {
-                  img = await _picker.pickImage(source: ImageSource.camera);
-                  if(img != null) {
-                    if(!mounted) return;
-                    save = await Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) =>
-                            _showCapturePreview(context, img!)));
-                  } else {
-                    return;
-                  }
-                } while(!save);
-                Directory path = await _getSavePath();
-                String fullSaveName = "${path.path}/${DateTime.now().millisecondsSinceEpoch}.jpg";
-                await img.saveTo(fullSaveName);
-                setState(() {
-                  _addImagesToList([XFile(fullSaveName)]);
-                });
+                XFile? img = await _picker.pickImage(source: ImageSource.camera);
+                if(img != null) {
+                  Directory path = await _getSavePath();
+                  String fullSaveName = "${path.path}/${DateTime
+                      .now()
+                      .millisecondsSinceEpoch}.jpg";
+                  print(fullSaveName);
+                  await img.saveTo(fullSaveName);
+                  setState(() {
+                    _addImagesToList([XFile(fullSaveName)]);
+                  });
+                }
               }),
           SpeedDialChild(
               child: const Icon(Icons.image),
