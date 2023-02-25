@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/services.dart';
 import 'package:kirche/model/church.dart';
 import 'package:kirche/model/visit.dart';
 import 'package:path/path.dart';
@@ -19,42 +21,18 @@ class DatabaseHelper {
 
   Future<void> initDB() async {
     String path = await getDatabasesPath();
+    path = join(path,'church_finder.db');
+
+    if (FileSystemEntity.typeSync(path) == FileSystemEntityType.notFound){
+      // Load database from asset and copy
+      ByteData data = await rootBundle.load(join('assets', 'churches.sqlite'));
+      List<int> bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+
+      // Save copied asset to documents
+      await File(path).writeAsBytes(bytes);
+    }
     db = await openDatabase(
       join(path, 'church_finder.db'),
-      onCreate: (database, version) async {
-        await database.execute(
-          """
-            CREATE TABLE churches (
-              id INTEGER PRIMARY KEY AUTOINCREMENT, 
-              name TEXT NOT NULL,
-              streetName TEXT NOT NULL,
-              streetNumber TEXT NOT NULL,
-              zip TEXT NOT NULL,
-              state TEXT NOT NULL,
-              lat DECIMAL(10,5) NOT NULL,
-              lon DECIMAL(10,5) NOT NULL
-            );
-          """);
-        await database.execute(
-          """
-            CREATE TABLE visits (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              churchId INTEGER NOT NULL,
-              timestamp TIMESTAMP NOT NULL
-            );
-          """
-        );
-        await database.execute(
-          """
-            CREATE TABLE visits_images (
-              id INTEGER PRIMARY KEY AUTOINCREMENT,
-              visitId INTEGER NOT NULL,
-              savepath TEXT NOT NULL,
-              takenAt DATETIME NOT NULL
-            );
-          """
-        );
-      },
       version: 1,
     );
   }
