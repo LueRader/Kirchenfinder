@@ -115,24 +115,18 @@ class _MyHomePageState extends State<MyHomePage> {
   void onSubmitted(String value) {
     setState(() {
       _searchActive = value;
-      _filteredChurches = _filteredChurches.where((church) => church.name.toLowerCase().contains(_searchActive.toLowerCase())).toList();
     });
   }
 
-  
   @override
   Widget build(BuildContext context) {
-    _filteredChurches = Provider.of<ChurchProvider>(context).getChurches.entries.map((c) => c.value).toList();
+    _filteredChurches = Provider.of<ChurchProvider>(context).getChurches.entries
+        .map((c) => c.value).toList()
+        .where((church) => church.place.toLowerCase()
+        .contains(_searchActive.toLowerCase())).toList();
     return Scaffold(
       appBar: _searchBar.build(context),
-       body: AnimatedCrossFade(
-         firstChild: ListPage(churches: _filteredChurches),
-         secondChild: MapPage(churches: _filteredChurches),
-         duration: const Duration(milliseconds: 300),
-         crossFadeState: _showMap
-           ? CrossFadeState.showSecond
-           : CrossFadeState.showFirst,
-       ),
+      body: !_showMap ? ListPage(churches: _filteredChurches) : MapPage(churches: _filteredChurches),
     );
   }
 }

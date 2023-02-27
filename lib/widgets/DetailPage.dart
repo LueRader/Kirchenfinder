@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:kirche/ChurchProvider.dart';
@@ -9,6 +9,7 @@ import 'package:kirche/model/visit.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:provider/provider.dart';
 
+import 'package:kirche/DatabaseHelper.dart';
 import 'VisitEditAddPage.dart';
 import 'VisitDetailPage.dart';
 
@@ -28,6 +29,7 @@ class _DetailPageState extends State<DetailPage> {
 
   @override
   void initState() {
+
     super.initState();
     initializeDateFormatting();
   }
@@ -35,8 +37,28 @@ class _DetailPageState extends State<DetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    _church = Provider.of<ChurchProvider>(context, listen: true).getChurch(widget.churchId);
+
     _visits = Provider.of<ChurchProvider>(context, listen: true).getVisits(widget.churchId);
+    _church = Provider.of<ChurchProvider>(context, listen: true).getChurch(widget.churchId);
+
+    Widget makeChurchRow(String prop, String val, {String href = ""}) {
+      return Row(
+        children: [
+          Text(
+            prop,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Expanded(
+              child: Link(val)
+          ),
+        ],
+      );
+    }
+
+    Widget makeChurchInfo() {
+      return Row();
+    }
+
     Widget makeVisit(int idx) {
       return ListTile(
         contentPadding:

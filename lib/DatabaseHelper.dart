@@ -13,6 +13,7 @@ class DatabaseHelper {
 
   DatabaseHelper._();
 
+  final String _churchTableName = "churches3";
   late Database db;
 
   factory DatabaseHelper() {
@@ -31,31 +32,55 @@ class DatabaseHelper {
       // Save copied asset to documents
       await File(path).writeAsBytes(bytes);
     }
-    db = await openDatabase(
-      join(path, 'church_finder.db'),
+    db = await openDatabase(path,
       version: 1,
     );
   }
 
   Future<int> insertChurch(Church church) async {
-    return await db.insert('churches', church.toMap());
+    return await db.insert(_churchTableName, church.toMap());
   }
 
   Future<int> upsertChurch(Church church) async {
-    return await db.insert('churches', church.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
+    return await db.insert(_churchTableName, church.toMap(), conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<int> updateChurch(Church church) async {
-    return await db.update('churches', church.toMap(),where: "id = ?", whereArgs: [church.id]);
+    return await db.update(_churchTableName, church.toMap(),where: "id = ?", whereArgs: [church.id]);
+  }
+
+  Future<Church?> loadChurch(int id) async {
+    final List<Map<String,Object?>> queryRes = await db.rawQuery(
+        '''SELECT a.id, a.category, a.form, a.region, a.denom, a.lat, a.lon,
+        GROUP_CONCAT(DISTINCT b.name) as arch,
+        GROUP_CONCAT(DISTINCT c.name) AS material,
+        a.link, a.name, a.phone, a.place, a.sketchimage, a.thumbnail,a.heading,
+        a.info, a.history, a.longinfo, a.reformation, a.spiritual, a.stamp 
+        FROM $_churchTableName AS a WHERE a.id=$id
+        LEFT JOIN archs AS b ON instr(a.arch, "-" || b.id || "-") > 0
+        LEFT JOIN materials AS c ON instr(a.material, "-" || c.id || "-") > 0
+        GROUP BY a.id'''
+    );
+    return queryRes.isNotEmpty ? Church.fromMap(queryRes[0]) : null;
   }
 
   Future<List<Church>> loadChurches() async {
-    final List<Map<String,Object?>> queryRes = await db.query('churches');
+    final List<Map<String,Object?>> queryRes = await db.rawQuery(
+        '''SELECT a.id, a.category, a.form, a.region, a.denom, a.lat, a.lon,
+        GROUP_CONCAT(DISTINCT b.name) as arch,
+        GROUP_CONCAT(DISTINCT c.name) AS material,
+        a.link, a.name, a.phone, a.place, a.sketchimage, a.thumbnail,a.heading,
+        a.info, a.history, a.longinfo, a.reformation, a.spiritual, a.stamp 
+        FROM $_churchTableName AS a
+        LEFT JOIN archs AS b ON instr(a.arch, "-" || b.id || "-") > 0
+        LEFT JOIN materials AS c ON instr(a.material, "-" || c.id || "-") > 0
+        GROUP BY a.id'''
+    );
     return queryRes.map((c) => Church.fromMap(c)).toList();
   }
 
   Future<int> deleteChurch(int id) async {
-    return await db.delete('churches', where: "id = ?", whereArgs: [id]);
+    return await db.delete(_churchTableName, where: "id = ?", whereArgs: [id]);
   }
 
   Future<Map<int,List<VisitImage>>> loadVisitImages() async {

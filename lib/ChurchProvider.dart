@@ -4,31 +4,6 @@ import 'DatabaseHelper.dart';
 import 'model/church.dart';
 import 'model/visit.dart';
 
-List<Church> getChs() {
-  return [
-    Church(
-      id: 1,
-      name: 'N',
-      streetName: 'SN',
-      streetNumber: '1',
-      zip: '12345',
-      state: 'A',
-      lat: 53.7398629,
-      lon: 13.0813882,
-    ),
-    Church(
-      id: 2,
-      name: 'Na',
-      streetName: 'StN',
-      streetNumber: '2',
-      zip: '23456',
-      state: 'B',
-      lat: 53.6033576,
-      lon: 12.2021056,
-    ),
-  ];
-}
-
 class ChurchProvider extends ChangeNotifier {
   Map<int,Church> _churches = {};
   Map<int,List<Visit>> _visits = {};
@@ -72,9 +47,6 @@ class ChurchProvider extends ChangeNotifier {
           print("Error $e");
         }
 
-        for (var ch in churches) {
-          ch.visits = visits[ch.id] ?? [];
-        }
         _visits = visits;
         _churches = { for (var c in churches) c.id : c };
         notifyListeners();

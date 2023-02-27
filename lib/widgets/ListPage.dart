@@ -1,7 +1,7 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:kirche/model/church.dart';
 import 'package:kirche/widgets/DetailPage.dart';
+import 'package:path/path.dart';
 
 class ListPage extends StatefulWidget {
   const ListPage({super.key, required this.churches});
@@ -14,21 +14,22 @@ class ListPage extends StatefulWidget {
 
 class _ListPageState extends State<ListPage> {
 
+
   @override
   Widget build(BuildContext context) {
     ListTile makeListTile(Church church) => ListTile(
       contentPadding:
       const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
-      leading: const Icon(
-            Icons.ac_unit,
-            color: Colors.black
+      leading: AspectRatio(
+          aspectRatio: 1,
+          child: Image(image: AssetImage(join('assets',church.thumbnail))),
       ),
       title: Text(
         church.name,
         style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
-        church.streetName,
+        church.place,
         style: const TextStyle(color: Colors.black),
       ),
       trailing:
@@ -46,7 +47,7 @@ class _ListPageState extends State<ListPage> {
 
     final makeBody = ListView.separated(
         scrollDirection: Axis.vertical,
-        shrinkWrap: false,
+        shrinkWrap: true,
         itemCount: widget.churches.length,
         separatorBuilder: (_,__) => const Divider(height: 8,),
         itemBuilder: (BuildContext context, int index) {
