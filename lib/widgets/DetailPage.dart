@@ -49,7 +49,7 @@ class _DetailPageState extends State<DetailPage> {
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           Expanded(
-              child: Link(val)
+              child: Text(_church.form ?? "")
           ),
         ],
       );

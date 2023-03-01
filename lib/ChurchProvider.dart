@@ -34,6 +34,11 @@ class ChurchProvider extends ChangeNotifier {
   List<Visit> getVisits(int churchId) {
     return _visits[churchId] ?? [];
   }
+  
+  List<Church> getChurchesByIds(List<int> ids) {
+    return _churches.entries.where((c) => ids.contains(c.key)).map((e) => e.value).toList();
+  }
+
   Map<int,Church> get getChurches {
     if(_churches.isEmpty) {
       late DatabaseHelper dbHelper = DatabaseHelper();

@@ -59,7 +59,7 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
     _searchBar = SearchBar(
         inBar: false,
-        buildDefaultAppBar: buildAppBar,
+        buildDefaultAppBar: _buildAppBar,
         setState: setState,
         onSubmitted: onSubmitted,
         onChanged: onSubmitted,
@@ -76,7 +76,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  List<Widget> buildActionButtons(BuildContext context) {
+  List<Widget> _buildActionButtons(BuildContext context) {
     List<Widget> actions = [];
     actions.add(
       IconButton(
@@ -90,6 +90,17 @@ class _MyHomePageState extends State<MyHomePage> {
           return const Icon(Icons.list, semanticLabel: "Zur Listenansicht wechseln.",);
         }(),
       )
+    );
+    actions.add(
+      IconButton(
+          onPressed: (){
+
+          }(),
+          icon: const Icon(
+            Icons.route,
+            semanticLabel: "Routen und Pfade",
+          )
+      ),
     );
     if(_searchActive != '') {
       actions.add(
@@ -106,10 +117,10 @@ class _MyHomePageState extends State<MyHomePage> {
     return actions;
   }
 
-  AppBar buildAppBar(BuildContext context) {
+  AppBar _buildAppBar(BuildContext context) {
     return AppBar(
         title: const Text('Kirchenfinder'),
-        actions: buildActionButtons(context));
+        actions: _buildActionButtons(context));
   }
 
   void onSubmitted(String value) {

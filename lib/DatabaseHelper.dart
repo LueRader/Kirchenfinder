@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
+import 'package:kirche/model/ChurchRoute.dart';
 import 'package:kirche/model/church.dart';
 import 'package:kirche/model/visit.dart';
 import 'package:path/path.dart';
@@ -77,6 +78,16 @@ class DatabaseHelper {
         GROUP BY a.id'''
     );
     return queryRes.map((c) => Church.fromMap(c)).toList();
+  }
+
+  Future<List<ChurchRoute>> loadRoutes() async {
+    final List<Map<String, Object?>> queryRes = await db.rawQuery(
+      '''SELECT a.id, a.category, a.difficulty, a.thumbnail, a.phrase, a.name, a.info, GROUP_CONCAT(DISTINCT b.churchId) AS churchIds
+      FROM routes AS a
+      LEFT JOIN routes_churches AS b ON a.id = b.routeId
+      GROUP BY a.id'''
+    );
+    return queryRes.map((r) => ChurchRoute.fromMap(r)).toList();
   }
 
   Future<int> deleteChurch(int id) async {
