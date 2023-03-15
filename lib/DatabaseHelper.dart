@@ -82,12 +82,16 @@ class DatabaseHelper {
 
   Future<List<ChurchRoute>> loadRoutes() async {
     final List<Map<String, Object?>> queryRes = await db.rawQuery(
-      '''SELECT a.id, a.category, a.difficulty, a.thumbnail, a.phrase, a.name, a.info, GROUP_CONCAT(DISTINCT b.churchId) AS churchIds
+      '''SELECT a.id, a.category, a.difficulty, a.thumbnail, a.phrase, a.name, a.info, GROUP_CONCAT(DISTINCT b.pos || ":" || b.church) AS churchIds
       FROM routes AS a
-      LEFT JOIN routes_churches AS b ON a.id = b.routeId
+      LEFT JOIN church_routes AS b ON a.id = b.route
       GROUP BY a.id'''
     );
     return queryRes.map((r) => ChurchRoute.fromMap(r)).toList();
+  }
+
+  Future<List<Map<String,Object?>>> loadChurchImages(int churchId) async {
+    return await db.query('pictures', columns: ['filename','title'], where: 'building = ?', whereArgs: [churchId]);
   }
 
   Future<int> deleteChurch(int id) async {

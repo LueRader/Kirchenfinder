@@ -1,16 +1,10 @@
-import 'dart:io';
-
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:kirche/model/visit.dart';
 import 'package:kirche/widgets/ListPage.dart';
 import 'package:kirche/widgets/MapPage.dart';
-import 'package:kirche/DatabaseHelper.dart';
 import 'package:kirche/model/church.dart';
 import 'package:flutter_search_bar/flutter_search_bar.dart';
-import 'package:kirche/model/visitimage.dart';
+import 'package:kirche/widgets/RoutesPage.dart';
 import 'package:provider/provider.dart';
-import 'package:sqflite/sqflite.dart';
 
 import 'ChurchProvider.dart';
 
@@ -69,9 +63,9 @@ class _MyHomePageState extends State<MyHomePage> {
           });
         },
         onClosed: () {
-        setState(() {
-          _searchActive = '';
-        });
+          setState(() {
+            _searchActive = '';
+          });
       },
     );
   }
@@ -94,8 +88,12 @@ class _MyHomePageState extends State<MyHomePage> {
     actions.add(
       IconButton(
           onPressed: (){
-
-          }(),
+            Navigator.of(context).push(
+                MaterialPageRoute(
+                    builder: (context) => const RoutesPage()
+                )
+            );
+          },
           icon: const Icon(
             Icons.route,
             semanticLabel: "Routen und Pfade",

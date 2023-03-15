@@ -36,7 +36,7 @@ class ChurchProvider extends ChangeNotifier {
   }
   
   List<Church> getChurchesByIds(List<int> ids) {
-    return _churches.entries.where((c) => ids.contains(c.key)).map((e) => e.value).toList();
+    return ids.map((e) => _churches[e]!).toList();
   }
 
   Map<int,Church> get getChurches {

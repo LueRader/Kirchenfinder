@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_html/flutter_html.dart';
 import 'package:kirche/ChurchProvider.dart';
 import 'package:kirche/DatabaseHelper.dart';
 import 'package:kirche/model/ChurchRoute.dart';
@@ -6,6 +7,7 @@ import 'package:kirche/widgets/ListPage.dart';
 import 'package:kirche/widgets/MapPage.dart';
 import 'package:path/path.dart';
 import 'package:provider/provider.dart';
+import 'package:html/dom.dart' as dom;
 
 import '../model/church.dart';
 
@@ -49,19 +51,25 @@ class _RoutesPageState extends State<RoutesPage> {
     );
   }
 
+  @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
+    return Scaffold(
+        appBar: AppBar(
+          leading: const BackButton(),
+          title: const Text("Routen & Pfade"),
+        ),
+        body: FutureBuilder(
         future: _getRoutes(),
         builder: (BuildContext context, AsyncSnapshot<List<ChurchRoute>> snapshot) {
           if(snapshot.connectionState == ConnectionState.waiting) {
             return const CircularProgressIndicator();
           } else {
             if(snapshot.hasError) {
-              return const Text("Routen konnten nicht geladen werden.");
+              return Text(snapshot.error.toString());
             }
             return ListView.separated(
                 itemBuilder: (BuildContext context, int idx) {
-                  _makeRouteTile(context, snapshot.data![idx]);
+                  return _makeRouteTile(context, snapshot.data![idx]);
                 },
                 shrinkWrap: true,
                 separatorBuilder: (_,__) => const Divider(height: 8,),
@@ -69,6 +77,7 @@ class _RoutesPageState extends State<RoutesPage> {
             );
           }
         }
+    ),
     );
   }
 }
@@ -108,7 +117,53 @@ class _RoutePageState extends State<RoutePage> {
             setState(() {
               Navigator.of(context).push(
                   MaterialPageRoute(
-                      builder: (context) => RouteInfo(churchId: church.id)));
+                      builder: (context) {
+                        return Scaffold(
+                          appBar: AppBar(
+                            leading: const BackButton(),
+                            title: const Text("Information"),
+                          ),
+                          body: Container(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Column(
+                              children: [
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Flexible(
+                                          child: Text(
+                                            widget.route.name,
+                                            textScaleFactor: 1.5,
+                                            textAlign: TextAlign.center,
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                          )
+                                      )
+                                    ]
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Flexible(
+                                        child: Text(
+                                          widget.route.phrase,
+                                          textScaleFactor: 1.2,
+                                          textAlign: TextAlign.center,
+                                        )
+                                    )
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+                                    Flexible(child: Html.fromDom(document: dom.Document.html(widget.route.info)),)
+                                  ],
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                  )
+              );
             });
           },
           icon: () {
@@ -124,7 +179,9 @@ class _RoutePageState extends State<RoutePage> {
     _routeChurches = Provider.of<ChurchProvider>(context).getChurchesByIds(widget.route.churchIds);
     return Scaffold(
       appBar: AppBar(
-        leading: BackButton(),
+        leading: const BackButton(),
+        title: Text(widget.route.name),
+        actions: _buildActionButtons(context),
       ),
       body: !_showMap ? ListPage(
         churches: _routeChurches,

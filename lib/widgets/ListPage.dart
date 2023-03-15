@@ -25,11 +25,11 @@ class _ListPageState extends State<ListPage> {
           child: Image(image: AssetImage(join('assets',church.thumbnail))),
       ),
       title: Text(
-        church.name,
+        church.place,
         style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
       ),
       subtitle: Text(
-        church.place,
+        church.name,
         style: const TextStyle(color: Colors.black),
       ),
       trailing:
@@ -37,7 +37,9 @@ class _ListPageState extends State<ListPage> {
       onTap: () {
         Navigator.of(context).push(
             MaterialPageRoute(
-                builder: (context) => DetailPage(churchId: church.id)));
+                builder: (context) => DetailPage(churchId: church.id)
+            )
+        );
       },
     );
 

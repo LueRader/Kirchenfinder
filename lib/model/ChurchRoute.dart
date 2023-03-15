@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 class ChurchRoute {
   int id;
   String category;
@@ -27,5 +29,9 @@ class ChurchRoute {
         phrase = res['phrase'],
         name = res['name'],
         info = res['info'],
-        churchIds = res['churchIds'];
+        churchIds = List<int>.from((res['churchIds']
+            .split(',')
+            ..sort(compareNatural))
+            .map((e) => int.parse(e.split(":")[1]))
+            .toList());
 }

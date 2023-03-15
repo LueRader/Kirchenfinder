@@ -176,7 +176,7 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
           actions: [
             IconButton(
                 onPressed: () {
-
+                  print(controller.page);
                 },
                 icon: const Icon(Icons.share))
           ],
@@ -186,43 +186,15 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
             itemCount: _imageFileList!.length,
             itemBuilder: (BuildContext context, int idx) {
               return SizedBox.expand(
-                child: Image.file(File(imgs[idx].path)),
+                child: InteractiveViewer(
+                  panEnabled: false,
+                  minScale: 1.0,
+                  maxScale: 2.5,
+                  child: Image.file(File(imgs[idx].path)),
+                ),
               );
             }),
       );
-  }
-
-  Widget _showCapturePreview(BuildContext context, XFile img) {
-    return Scaffold(
-      body: Stack(
-        children: [
-          Image(
-            image: Image.file(File(img.path)).image,
-            fit: BoxFit.cover,
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: ButtonBar(
-              alignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(false);
-                    },
-                    icon: const Icon(Icons.cancel_outlined, color: Colors.white,)
-                ),
-                IconButton(
-                    onPressed: () {
-                      Navigator.of(context).pop(true);
-                    },
-                    icon: const Icon(Icons.close, color: Colors.white,)
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
   }
 
   PreferredSizeWidget? _createAppBar(BuildContext context) {
