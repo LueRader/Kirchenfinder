@@ -24,9 +24,11 @@ class MyApp extends StatelessWidget {
     return MultiProvider(providers: [
       ChangeNotifierProvider.value(value: ChurchProvider(),)
       ],
-      child: const MaterialApp(
-          home: MyHomePage(
-          ),
+      child: MaterialApp(
+          home: const MyHomePage(),
+        theme: ThemeData(
+          primaryColor: Colors.black12,
+        ),
       ),
     );
   }

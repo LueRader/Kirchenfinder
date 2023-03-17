@@ -19,7 +19,7 @@ class _ListPageState extends State<ListPage> {
   Widget build(BuildContext context) {
     ListTile makeListTile(Church church) => ListTile(
       contentPadding:
-      const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+      const EdgeInsets.symmetric(horizontal: 10.0, vertical: 5.0),
       leading: AspectRatio(
           aspectRatio: 1,
           child: Image(image: AssetImage(join('assets',church.thumbnail))),

@@ -9,6 +9,7 @@ import 'package:intl/intl.dart';
 import 'package:kirche/model/church.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../ChurchProvider.dart';
 import '../model/visit.dart';
@@ -141,7 +142,9 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
               _selectedImages.add(idx);
             });
           } else {
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => _showGallery(context, _imageFileList!, idx)));
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ImageGallery(imgs: _imageFileList!,
+                startIdx: idx,
+                churchId: widget.churchId)));
           }
         },
         child: _selectionActive ? Transform.scale(
@@ -209,6 +212,19 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
           }, icon: const Icon(Icons.close)
           ),
           actions: [
+            IconButton(
+                onPressed: () {
+                  final box = context.findRenderObject() as RenderBox?;
+                  final church = Provider.of<ChurchProvider>(context, listen: false).getChurch(widget.churchId);
+                  String date = _visit.timestamp != null ? "am ${DateFormat.yMd('de_DE').format(_visit.timestamp)}" : "";
+                  String text = "Mein Besuch der ${church.name} in ${church.place} $date";
+                  Share.shareXFiles(_imageFileList!.asMap().entries
+                      .where((e) => _selectedImages.contains(e.key)).map((e) => e.value).toList(),
+                      text: text,
+                      sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+                },
+                icon: const Icon(Icons.share)
+            ),
             IconButton(onPressed: () {
               List<File> imgFiles = _imageFileList!.asMap().entries
                   .where((e) => _selectedImages.contains(e.key))
@@ -238,7 +254,6 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
 
   @override
   Widget build(BuildContext context) {
-    //_church = Provider.of<ChurchProvider>(context, listen: false).getChurch(widget.churchId);
     storeVisit().then((id) {
       if (id != 0 && _visit.id == 0) {
         _visit.id = id;
@@ -355,4 +370,73 @@ class _VisitEditAddPageState extends State<VisitEditAddPage> {
       ),
     );
   }
+}
+
+class ImageGallery extends StatefulWidget {
+  const ImageGallery({super.key, required this.imgs, required this.startIdx, required this.churchId, this.date});
+
+  final List<XFile> imgs;
+  final int startIdx;
+  final DateTime? date;
+  final int churchId;
+
+  @override
+  _ImageGalleryState createState() => _ImageGalleryState();
+}
+
+class _ImageGalleryState extends State<ImageGallery> {
+
+  late int idx;
+  late Church _church;
+
+  @override
+  void initState() {
+    super.initState();
+    idx = widget.startIdx;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final PageController controller = PageController(initialPage: idx);
+    _church = Provider.of<ChurchProvider>(context, listen: false).getChurch(widget.churchId);
+    return
+      Scaffold(
+        appBar: AppBar(
+          leading: const BackButton(),
+          title: Text("Aufnahme ${idx+1}/${widget.imgs.length}"),
+          actions: [
+            IconButton(
+                onPressed: () {
+                  final box = context.findRenderObject() as RenderBox?;
+                  String date = widget.date != null ? "am ${DateFormat.yMd('de_DE').format(widget.date!)}" : "";
+                  String text = "Mein Besuch der ${_church.name} in ${_church.place} $date";
+                  Share.shareXFiles([widget.imgs[idx]],
+                      text: text,
+                      sharePositionOrigin: box!.localToGlobal(Offset.zero) & box.size);
+                },
+                icon: const Icon(Icons.share)
+            )
+          ],
+        ),
+        body: PageView.builder(
+            controller: controller,
+            itemCount: widget.imgs.length,
+            onPageChanged: (int i) {
+              setState(() {
+                idx = i;
+              });
+            },
+            itemBuilder: (BuildContext context, int idx) {
+              return SizedBox.expand(
+                child: InteractiveViewer(
+                  panEnabled: false,
+                  minScale: 1.0,
+                  maxScale: 2.5,
+                  child: Image.file(File(widget.imgs[idx].path)),
+                ),
+              );
+            }),
+      );
+  }
+
 }
